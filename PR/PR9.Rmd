@@ -1,0 +1,61 @@
+---
+title: "PR9"
+author: "이유빈"
+date: "2018년 11월 17일"
+output: word_document
+---
+
+# What's going on in the graph? | Nov. 14, 2018
+- URL : https://www.nytimes.com/2018/11/08/learning/whats-going-on-in-this-graph-nov-14-2018.html
+
+## 목차
+- 서론: 그래프에 대한 정보
+- 본론: 문제풀이
+- 결론
+
+## 서론
+- 1. What do you notice?
+```{r}
+#지도 하단을 보면, 경로의 너비가 추수감사절 항공 여행 수요의 증가를 나타낸다는 것을 알 수 있습니다. 또한, 빨간색은 출발지점이고 파란색은 목적지점이라는 것을 알 수 있습니다. 이 그래프의 전반적인 지표의 의미를 살펴보도록 하자. 출발지점이 빨간색인 지역 중에서 경로의 너비가 넓은 지역은 Boston, Washington 그리고 Atlanta 라는 것을 알 수 있다. 여기에서 놀라운 점은 3지역 모두 Miami를 목적지점으로 하고 있다는 것이다.
+```
+
+- 2. What do you wonder?
+```{r}
+#Boston, Washington 그리고 Atlanta 지역들이 모두 Miami를 향하고 있다는 것을 지도에서 확인 할 수 있었다. 여기에서 궁금증이 생겼습니다. 왜 이 3지역은 모두 Miami를 목적지점으로 두고 있는지 궁금해졌습니다.
+```
+
+- 3. What might be going on in this graph?
+```{r}
+#이 지도가 말하고자 하는 것은 추수감사절 항공 여행의 수요가 증가하였다는 것이다. 그러나, 여기에서 중점을 두어야할 것은 북부 지역인 Boston, Washington 그리고 Atlanta가 남부 지역인 Miami로 이동하고 있다는 것이다. 이 내용을 바탕으로 Headline을 써보면, “추수감사절, 마이애미로 여행을 떠나는 승객 수 증가. 그 이유는 무엇일까?”라고 할 수 있다. 이 headline을 지지하는 내용은 마이애미가 남부지역이라는 것이다. 추수감사절은 미국의 11월 넷째 목요일이다. 이 날은 가을에 모든 곡식과 올리브, 포도 등을 거두어들이고 가족이 모여 나누어 먹는 명절이다. 그러나 추운 날 집에서 명절을 보내는 것이 아닌 따뜻한 지역으로 여행을 떠나는 사람들이 많아졌다. 그 이유는 추운 겨울 날씨에 따뜻한 봄 날씨를 경험하기 위해서 휴가를 떠난다고 생각하였습니다.
+```
+
+## 본론
+- 1. Notice which cities have the biggest increase in passengers as an origin and which cities as a destination. Is there any overlap in the lists? What characteristics do each of these subgroups have?
+```{r}
+#출발지점으로서 승객의 수가 가장 많은 도시는 경로의 너비가 가장 넓은 Boston이다. 그 외에도 Washington과 Atlanta가 있다. 이 3개의 도시들의 목적지는 모두 Miami이다. 이러한 특성이 나타나는 이유는 무엇일까? 바로 날씨와 도시특성에 있다고 할 수 있다. Miami는 11월에도 평균 20도를 유지하며 초가을 날씨를 보인다. 또한, 관광 도시로 자리잡고 있어 많은 관광객들이 모여드는 도시이다.
+```
+
+- 2. What do you notice about distance traveled for these origin-destination pairs?
+```{r}
+#출발지점과 목적지점의 한 쌍이 이동한 거리에 대해서 알 수 있는 것은 동서의 이동보다 남북의 이동이 더 많다는 것을 알 수 있다. 그 이유는 미국의 지리적 특성 때문이라고 할 수 있다. 동쪽에서 서쪽으로 또는 서쪽에서 동쪽으로 이동하기 위해서는 많은 시간을 필요로 한다. 하지만 정해져 있는 휴가 날짜에 여행을 떠나기 위해서는 비교적 시간이 적게 걸리는 북쪽에서 남쪽으로의 여행을 선택하게 된다.
+```
+
+- 3. Notice that the lines to and from Los Angeles are very thin. I wonder why this is so for such a large city. Can you explain this?
+```{r}
+#로스앤젤레스는 미국에서 뉴욕 다음으로 미국을 대표하는 대도시이다. 컬버시티 등의 위성도시를 포함하여 인구 700만명이 넘는 미국 제2의 거대한 대도시권을 형성한다. 하지만, 이러한 도시의 경로 너비가 얇은 것은 이유가 있습니다. 그 이유는 로스앤젤레스의 지리적 특성 때문이라고 할 수 있습니다. 서부와 남부 해안에 이르는 광대한 지역인 로스앤젤레스는 승객들의 유출은 거의 없고 승객들의 유입만 조금 있다는 것을 지도를 보면 알 수 있습니다. 서쪽에 위치해 있는 로스앤젤레스를 여행하기 위해서는 많은 시간이 필요하기에 여행을 가는 사람들이 거의 없다고 할 수 있다. 그리고, 승객들의 유출이 없는 이유는 로스앤젤레스 안에서 추수감사절을 지내기에 적합하기 때문입니다. 따뜻한 남부에 위치해 있으며 관광과 휴양으로 유명한 도시에서는 따로 다른 도시로 여행을 떠나지 않아도 추수감사절을 따뜻하게 보낼 수 있습니다.
+```
+
+- 4. The demand for air travel is calculated per capita. (See Stat Nuggets.) What does it mean to have the same increase, say 10 percent, in air travel demand for large versus small cities?
+```{r}
+#지도를 보면, 대부분 대도시에서 작은 도시로 항공 여행을 떠난다는 것을 알 수 있다. 대도시와 작은 도시의 항공 여행 수요의 10%가 같은 증가세를 보이는 이유는 그 도시들 사이의 연관성이 있기 때문이다. 그 연관성이라는 것은 항공 경로에 있다. 항공 경로가 연결되어 있는 2개의 도시는 승객들이 오고 가면서 그 도시의 수요를 높여준다.
+```
+
+- 5. If you can find your nearest airport on the graph, where are your “neighbors” flying for Thanksgiving? Explain whether that makes sense to you.
+```{r}
+#내가 샌프란시스코에 살고 있다고 가정을 해보자. 샌프란시스코에서 멀리 떠나지 않아도 여행을 즐길 수 있는 호놀룰루 공항으로 갈 것이다. 왜냐하면 호놀룰루는 하와이의 주도이다. 와이키키 해변으로 유명한 하와이에서 나의 휴가를 즐기고 싶다. 또한, 호놀룰루에서는 특별한 파인애플 모양의 쿠키가 유명하다. 와이키키 해변에서 호놀룰루 쿠키를 먹으며 나의 휴가를 보내고 싶다.
+```
+
+## 결론
+```{r}
+#추수감사절 여행은 보통 자동차로 이동을 하였다. 하지만, 2017년부터 추수 감사절에 약 4백만 명이 비행기를 타고 여행을 떠났다. 그래프를 보고 알 수 있던 것은 취업 센터가 밀집되어 있는 Boston, Wahsington 그리고 Atlanta에서 Miami로 떠나는 대학생들이 많아졌다는 것입니다. 그 이유는 직장을 다니다가 휴가 때에는 따뜻하고 볼거리가 많은 남부 지역으로 여행을 떠나는 수가 늘어난 것입니다. 전반적으로, 추수감사절 승객 그래프를 통해 알 수 있는 것은 많은 사람들이 비행기를 타고 다른 지역으로 여행을 간다는 것입니다. 그 중에서도 특히 동서가 아닌 남북으로 이동이 많다는 것을 알 수 있습니다.
+```

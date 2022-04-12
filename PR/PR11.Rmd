@@ -1,0 +1,400 @@
+---
+title: "PR11"
+author: "201821510_이유빈"
+date: "2018년 11월 20일"
+output:
+  word_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+# 1. dplyr 패키지
+- dplyr은 Hadley Wickham이 만든 데이터 핸들링을 위한 패키지
+- dplyr은 C++로 작성되어 기존 데이터핸들링 패키지보다 빠른 데이터조작이 가능
+- 각종 데이터베에스 지원(MySQL, PostgreSQL, SQLite, BigQuery)
+- 기존R의 기본문법과 프로그래밍 능력을 바탕으로 데이터의 조작이 가능하지만 dplyr패키지를 활용하면 통일된 문법양식으로 데이터조작이 가능함
+- 채인연산자를 지원함으로(%>%) 앞부분의 연산결과를 뒤에 오는 함수의 입력값으로 사용할 수 있읍
+
+# dplyr의 주요함수
+- 함수 / 설명 / 기존함수
+    - filter() / 지정한 조건식에서 맞는 데이터 추출 / subset()
+    - select() / 열의 추출 / data[,c("Year", "Month")]
+    - mutate() / 열 추가 / transform()
+    - arrange() / 정렬 / order(), sort()
+    - summarise() / 집계 / aggregate()
+    
+# dplyr 실습데이터 : nycflights13
+- 미국 휴스턴에서 출발하는 모든 비행기의 이착륙기록
+```{r}
+#install.packages("nycflights13") #해당 패키지에 데이터가 있음
+library(nycflights13)
+library(dplyr)
+head(flights)
+```
+
+# 1.1 dplyr의 filter함수
+- 데이터에서 원하는 조건에 따라 행을 추출하는 함수
+- filter(데이터, 조건1 | 조건2) : 조건1 또는 조건2 둘 중 한가지를 충족하는 데이터 추출
+- filter(데이터, 조건1 & 조건2): 조건1과 조건2 모두 충족하는 데이터 추출
+- 조건을 작성할 때 쉼표','는 AND, '|'는 OR와 같음
+
+```{r}
+filter(flights, month==1 | day==1) #37198row
+filter(flights, month==1, day==1) #842row
+filter(flights, month==1, day==1, year==2013) #832row
+```
+
+# 1.2 dplyr의 arrange함수
+- 데이터를 원하는 조건에 따라 정렬해주는 함수
+- arrange(데이터, 정렬기준컴럼1, 정렬기준컬럼2, 정렬기준컬럼3)
+- 내림차순으로 정렬시 desc함수 사용: arrange(데이터, desc(정렬기준컬럼1))
+
+```{r}
+arrange(flights, year, month, day) #ArrDelay, Month, Year 순으로 정렬
+arrange(flights, desc(month)) #Month컬럼기준으로 내림차순으로 정렬
+```
+
+# 1.3 dplyr의 select함수
+- select함수는 원하는 열(column)을 추출
+- select(데이터, 컬럼1, 컬럼2, 컬럼3)
+- select(데이터, 컬럼1:컬럼3)
+- 컬럼명을 변경할 수 있음
+
+```{r}
+select(flights, year, month, day)
+select(flights, year:day)
+select(flights, -(year:day))
+```
+
+# 1.4 dplyr의 distinct함수
+-  중복항목을 제외한 데이터를 확인 할 수 있음(unique함수와 동일)
+- distinct(데이터,컬럼명)
+
+```{r}
+distinct(select(flights,tailnum))
+distinct(select(flights, origin, dest))
+```
+
+# 1.5 dplyr의 mutate함수
+- 기존 데이터 프레임에 새로운 열을 추가해줌
+- 데이터프레임 내의 변수들을 활용해 새로운 변수를 만들때 효과적임
+- 새로 생성한 변수를 해당 함수내에서 바로 활용이 가능
+
+```{r}
+#arr_delay - dep_delay값으로 gain컬럼 추가
+mutate(flights, gain = arr_delay - dep_delay)
+#gain컬럼을 만드는 동시에 gain컬럼을 이용해 다른 변수를 생성가능
+mutate(flights,
+       gain = arr_delay - dep_delay,
+       gain_per_hour = gain/(air_time/60))
+```
+
+# 1.6 dplyr의 summarise함수
+- mean(), sd(), var(), median()함수를 활용해 기술통계량을 확인
+- 결과를 데이터프레임으로 반환함
+
+```{r}
+summarise(flights, delay=mean(dep_delay, na.rm=TRUE))
+```
+
+# 1.7 dplyr의 group_by()함수
+- 변수의 레벨에 따라 자료를 그룹화해줌
+- 그룹에 따른 수치자료를 산출하고 싶을때 편리함
+- summarize함수와 함께 사용시 aggregate함수와 같은 기능
+- ex)직급에 따른 평균 연봉과 사용가능한 연차일수(휴가)를 구하고 싶을때
+
+```{r}
+#비행기별로 그룹만들기
+by_tailnum = group_by(flights, tailnum) #비행기별로 그룹만들기
+
+#비행기별 비행회수, 비행거리평균, 연착시간평균 산출
+delay=summarise(by_tailnum, count=n(), dist=mean(distance, na.rm=TRUE),delay=mean(arr_delay, na.rm = TRUE))
+
+# 회수가 20회이상, 거리가 2000이하인 비행기만 추출
+delay=filter(delay,count>20, dist>2000)
+```
+
+- 위에서 만든 delay데이터로 시각화
+```{r}
+library(ggplot2)
+ggplot(delay, aes(dist, delay))+
+  geom_point(aes(size=count), alpha=1/2)+
+  geom_smooth()+
+  scale_size_area()
+```
+
+# 1.8 dplyr의 Chain연산
+- 여러단계의 함수나 연산을 연결하여 한번에 수행할 때 사용
+- 앞의 함수의 결과는 바로 뒤에오는 함수의 입력값이 됨
+- 데이터를 여러객체에 할당하지 않아도 되기때문에 메모리 관리에 유리함
+
+# 체인연산 사용하지 않을 때
+```{r}
+a1 = group_by(flights, year, month, day)
+a2 = select(a1, year:day, arr_delay)
+a3 = summarise(a2, arr=mean(arr_delay, na.rm=TRUE))
+a4 = filter(a3, arr>30)
+a4
+```
+
+# 체인연산 사용했을 때
+```{r}
+flights%>%group_by(year, month, day) %>% select(arr_delay) %>%
+  summarise(arr=mean(arr_delay, na.rm = TRUE)) %>% filter(arr>30)
+```
+
+# 1.9 dplyr의 join함수
+- join(x,y)또는 join(x,y,by="기준열")형태
+- 조인의 기준이 되는 단말 컬럼이 존재하는 경우 별도 by인수를 지정하지 않아도 됨
+```{r}
+# join 실습 데이터 생성
+#install.packages("readr")
+library(readr)
+
+superheroes <- "
+name, aligment, gender, publisher
+Magneto, bad, male, Marvel
+Storm, good, female, Marvel
+Mystique, bad, female, Marvel
+Batman, good, male, DC
+Joker, bad, male, DC
+Catwoman, bad, female, DC
+Hellboy, good, male, Dark Horse Comics
+"
+
+publishers <- "
+publisher, yr_founded
+DC, 1934
+Marvel, 1939
+Image, 1992
+"
+
+superheroes <- read_csv(superheroes, trim_ws=TRUE, skip=1)
+publishers <- read_csv(publishers, trim_ws=TRUE, skip=1)
+```
+
+- inner_join, left_join, full_join, anti_join, semi_join 각각의 출력값확인하기
+```{r}
+#inner_join(superheroes, publishers) #X,Y의 교집합
+#left_join(superheroes, publishers) #X기준(왼쪽)으로 대칭
+#full_join(superheroes, publishers) #X,Y의 합집합
+#anti_join(superheroes, publishers) #X의 컬럼만 유지하여 대칭
+#semi_join(superheroes, publishers) #Y의 여집합
+```
+
+# join 예제
+- raw.csv는 국회의원 별 의원비 지출내역
+- join.csv는 국회의원 명단
+- 두 데이터를 조인하기 위해서는 raw.csv의 데이터를 aggregate 또는 summarize함수를 사용해 요약해야함
+- 이름을 기준으로 join을 할 것
+```{r}
+#의원비 지출이 가장 많은 10명의 직업과 학력을 확인
+
+#데이터로딩
+raw_data=read.csv("raw.csv")
+join_data=read.csv("join.csv")
+head(raw_data)
+head(join_data)
+
+#조인할 데이터 추출
+expense = aggregate(expense~name+party, data=raw_data, FUN=sum) #데이터1 : 의원+정당별 지출금액 총합
+job_school=select(join_data, name, job, achievement) #데이터2 : 이름, 직업, 학력만 셀렉트
+
+#조인
+joined=inner_join(expense, job_school, by="name") #이름기준으로 조인
+
+joined = joined[order(joined$expense, decreasing=T),] #내림차순으로 정렬
+joined[1:10,] #top 10 확인
+```
+
+#2 reshape2
+- reshape2는 wide와 long포맷으로 쉽게 데이터를 변환해줌
+- melt함수는 wide 포맷 데이터를 long 포맷으로 변환해주는 함수 (`tidyr::gather와 유사)
+- castsms long포맷 데이터를 wide포맷으로 변환해주는 함수(`tidyr::spread와 유사)
+
+#2.1 wide포맷 데이터를 long 포맷으로 전환하기: melt 함수
+- R에 내장되어 있는 airquality라는 데이터셋 사용
+- 먼저 데이터셋을 쉽게 변경하기 위해 각 열의 이름을 전부 소문자로 변경
+```{r}
+library(reshape2)
+names(airquality) <- tolower(names(airquality))
+head(airquality)
+```
+
+- 일단위 오존량, 태양 복사열, 풍속 그리고 온도를 알고 싶습니다.
+- 이럴때 "ID variable"을 사용하면 설정을 해 줄 수 있습니다.
+```{r}
+aql<-melt(airquality, id.vars=c("month","day"))
+head(aql)
+```
+
+- long 포맷데이터의 열 이름 지정
+```{r}
+aql<-melt(airquality,id.vars = c("month","day"),
+          variable.name = "climate_variable",
+          value.name = "climate_value")
+head(aql)
+```
+
+#melt 연습하기
+- ChickWeight 데이터 (R기본 내장 데이터셋)
+
+```{r}
+head(ChickWeight)
+```
+
+- melt를 사용하여 ID variable을 time, chick, diet를 주고 weight를 value로 주는 chick_m이란 변수 만들기
+
+#2.2. long 포맷데이터에서 wide 포맷 데이터로 전환하기: cast 함수
+- long포맷에서 wide포맷으로 변환
+- reshape2 패키지에서는 여러가지 cast 함수가 존재함
+- 보통 데이터프레임 객체를 사용할 때는 dcast함수를 사용
+- 벡터나 행렬, 배열 등을 반환할땐 acast를 사용
+- aql객체를 롱포맷으로 만든 후 다시 와이드로 되돌려보겠습니다
+- dcast는 데이터의 형태를 묘사하는 식을 사용합니다.
+- 왼쪽의 인수는 "ID variable"을 참조하고 오른쪽의 인수는 "measured variable(value)"를 참조합니다.
+
+```{r}
+aql<-melt(airquality, id.vars=c("month","day"))
+head(aql)
+#aqw <- dcast(aql, month + day - variable)
+#head(aqw)
+head(airquality)
+```
+
+#cast 연습하기
+- 앞서 만들었던 chick_m을 dcast를 사용하여 원래 모양대로 되돌려 출력만 해보세요
+
+```{r}
+#dcast(aql, month-variable)
+```
+
+#2.2.1 Aggregation
+- aggregate함수를 적용하여 cast를 해보도록 하겠습니다.
+- NA값이 존재함으로 NA값을제거하는 na.rm=T인수를 사용해야합니다.
+```{r}
+#dcast(aql, month - variable, fun.aggregate = mean, na.rm=True)
+```
+
+#Aggregation 연습하기
+chick_m을 활용해서 dcast의 aggregation인수를 사용하여 Diet별로 weight의 평균을 구하여 출력해보세요
+
+#2.2.2 Margins
+- Aggregation 적용하여 cast를 수행할 때, 추가로 margins 인수를 적용할 수 있습니다.
+- margins=T를 주게되면 cast된 모든 부분에 전부 aggregation 함수를 적용하게 됩니다.
+- 또한 주어진 수식의 순서나 위치를 바꾸고 margins를 적용하게 된다면 해당 ID에 따른 각 열의 값에 aggregation 함수를 적용하게 됩니다.
+```{r}
+#margins=T
+#달별 합계, 총 합계, 각 variable의 합계를 구하여라
+head(dcast(aql,month + day ~variable, sum, margins = TRUE), 32)
+
+#month + day ~ variable식에서 margins ="day"별 sum
+head(dcast(aql, month+day~variable,sum,margins="day",na.rm=T),32)
+
+#day+month ~ variable 식에서 margins = "month"별 sum
+head(dcast(aql,day+month~variable,sum,margins="month",na.rm=T),8)
+```
+
+#margins 연습
+- chick_m을 활용하여 dcast의 aggregation과 margins를 사용하여 Diet별 time에 따른 weight의 평균을 구하시오
+
+#3. magrittr
+- magrittr패키지는 연산자(opperator)들의 집합들을 제공합니다.
+- 데이터 연산을 왼쪽에서 오른쪽 순서로 구조화
+- nasted 함수 호출을 피함
+- 지역변수 및 함수의 정의의 필요성을 최소화
+- 연산 순서 내에서 어디서나 추가 step을 만들 수 있음
+- f(x)를 x%>%f()로 대체할 수 있음
+- 이 연산자가 main operator인데 해당 기능이 의미 없이 보이시겠지만 여러가지 기능을 결합할 때 그 이점이 더욱 명확해집니다.
+
+#main operator의 예제
+```{r}
+library(magrittr)
+car_data<-
+  mtcars %>%  #1
+  subset(hp>100) %>%  #2
+  aggregate(.~ cyl, data=., FUN=. %>% mean %>% round(2)) %>%  #3
+  transform(kpl=mpg%>%multiply_by(0.4251))%>%  #4
+  print  #5
+```
+
+#main operator의 예제 해석
+- mtcars 데이터셋을 (#1)
+- hp를 기준으로 100보다 큰 데이터만 추출한 후 (#2)
+- cyl를 기준으로 각 변수들의 평균을 구한 다음에 소수점 둘째 자리까지 반올림을 한 후(#3)
+- kpl(kilometer per liter)열을 만들어 mpg*0.4521을 수행하고 (#4)
+- 만들어진 데이터를 출력(#5)과 동시에 car_data에 할당하는 과정입니다.
+
+##체인연산없이 실행
+```{r}
+car_data<-
+  transform(aggregate(. ~ cyl,
+                      data=subset(mtcars, hp>100),
+                      FUN=function(x) round(mean(x),2)),
+            kpl=mpg*0.4251)
+car_data
+```
+
+#추가내용
+- "."의 역할에 대해서 알아봅시다.
+- 일반적으로 %>%연산자만 사용하시게 되면 제일 첫 인수에 자동으로 배정이 됩니다.
+```{r}
+iris%>%head(3)
+head(iris,3)
+a<-c("bannananana","an apple")
+gsub("n","l",a)
+a%>%gsub("n","l")
+```
+- 이러한 상황에서 "."을 원하는 위치에 넣어주시면 해당 위치에 데이터가 넘어가게됨
+- "."은 magrittr나 dplyr에만 속해 있는 것이 아니라 R의 base에 정해진 규칙으로 .~cyl의 사용법과 같습니다.
+```{r}
+gsub("n","l",a)
+a%>%gsub("n","l",.)
+```
+
+#pr11-2
+##Lee Yubin 
+##2018년 11월 20일
+
+#join실습
+##1. 데이터 생성 및 할당
+```{r}
+#install.packages("readr")
+library(readr)
+
+superheroes<-"
+name.aligment, genderm publisher
+Magneto. bad. male, Marvel
+Storm. good, female, Marvel
+Mysique. bad. female, Marvel
+Batman. good. male, DC
+Joker. bad. male, DC
+Catwoman. bad. female, DC
+Hellboy. good. male, Dark Horse Comics
+"
+
+publishers<-"
+publisher, yr_founded
+DC, 1934
+Marvel, 1939
+Image, 1992
+"
+
+superheroes <- read_csv(superheroes, trim_ws=TRUE, skip=1)
+publishers <- read_csv(publishers, trim_ws=TRUE, skip=1)
+
+head(superheroes)
+head(publishers)
+```
+
+##2. join 실습
+- join(x,y)또는 join(x,y,by="기준열")형태
+- 조인의 기준이 되는 단일 컬럼이 존제하는 경우 별도 by인수를 지정하지 않아도 됨
+- 조인의 기준이 되는 컬럼이 여러개이거나, 여러가지 컬럼을 동시에 활용해야하는 경우 by인수를 사용
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+#inner_join(superheroes,publishers) #x, y의 교집합
+#left_join(superheroes,publishers) #x기준(왼쪽)으로 머징
+#semi_join(superheroes, publishers) #y의 여집합
+```

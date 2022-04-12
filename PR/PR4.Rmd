@@ -1,0 +1,288 @@
+---
+title: "PR4"
+author: "이유빈"
+date: "2018년 10월 2일"
+output: word_document
+---
+
+# Dataframe
+## 1. 벡터를 이용해 데이터프레임 만들기
+- data.frame 함수를 사용하여 데이터프레임 만들기
+- stringsAsFactors 인수 사용해서 데이터 프레임 만들기
+- stringsAsFactors 인수에 T값을 할당하면 각 열이 factor형으로 저장됨
+```{r}
+name <- c("Boil", "Tom", "Ravindra", "Bob", "Sobia")
+gender <- c("M", "M", "F", "M", "F")
+age <- c(17,21,33,12,37)
+marriage <- c(F,T,F,F,T)
+
+# stringsAsFactors 인수 없이 만들기
+customer <- data.frame(name, gender, age, marriage)
+str(customer)
+```
+
+```{r}
+# stringsAsFactors=F 사용해서 만들기
+customer <- data.frame(name,gender,age,marriage, stringsAsFactors=F)
+str(customer)
+View(customer)
+```
+
+```{r}
+# data.frame 함수와 관련된 다양한 함수 사용하기
+str(customer) #데이터프레임의 구조를 확인
+```
+
+```{r}
+names(customer) #데이터프레임의 열이름을 확인 
+```
+
+```{r}
+rownames(customer) #데이터프레임의 행이름을 확인 
+```
+
+## 2. Data Frame 변수명 바꾸기
+```{r}
+# colnames, rownames 함수는 변수명 변환 및 확인
+colnames(customer)
+rownames(customer)
+colnames(customer) <- c("cust_name", "cust_gend", "cust_age", "cust_mrg")
+rownames(customer) <- c('a','b','c','d','e')
+customer
+```
+
+## 3. Data Frame 데이터 추출
+```{r}
+# 접근 방식은 matrix와 동일
+# [행, 열]연산자 및 $연산자 활용하여 데이터 접근하기
+customer[1,] ; customer["a",] #첫번째 행 숫자 및 rowname으로 추출 
+customer[customer$cust_name=="Tom",] #cust_name 컬럼이 Tom인 row만 추출 
+customer[2:5,] ; customer[-1,] #2~5 행
+customer[customer$cust_name!="Tom",] #cust_name 컬럼이 Tom이 아닌 row 
+customer[c("b","c"),]
+```
+
+## 4. Data Frame에 데이터 추가
+```{r}
+# 이름으로 추가
+customer$cust_height <- c("185","165","156","174","155")
+customer["f",] <- list("Jack","M",50,T,"167")
+customer
+```
+```{r}
+# cbind, rbind로 추가 
+customer <- cbind(customer,weight=c(80,70,65,48,55,100))
+customer <- rbind(customer,g=list("Merry","F",42,F,"172",60))
+customer <- rbind(customer,h=c("Merry","F",42,F,"172",60))
+customer
+```
+
+## 5. Data Frame에 데이터 삭제
+```{r}
+customer <- customer[,-5] #1번째 컬럼을 빼고 나머지만 다시 할당
+customer <- customer[-7,] #7번째 로우를 빼고 나머지만 다시 할당 
+customer$weight <- NULL #weight 컬럼 삭제 
+```
+
+## 6. Data 조건문을 활용해 조작하기
+```{r}
+# 이부분은 모든 코드에 주석달것!
+# &와 | 연산자로 여러개의 조건을 사용할수 있음
+customer[customer$cust_gend=="M",] #cust_gend 컬럼이 M인 row만 추출
+customer[customer$cust_gend!="F",] #cust_gend 컬럼이 F가 아닌 row
+nrow(customer[customer$cust_gend=="M",]) #nrow는 행의 개수를 보여줌
+customer[customer$cust_name=="Bob", c("cust_age", "cust_mrg")] #cust_name 칼럼이 Bob인 row에서 cust_age와 cust_mrg 칼럼 값 추출 
+customer[customer$cust_name=="Tom" | customer$cust_name=="Ravindra",] # cust_name 칼럼이 Tom과 Ravindra인 row 추출 
+customer[customer$cust_gend=="M" & customer$cust_age>24,] # cust_gend 칼럼이 M이고 cust_age 칼럼이 24이상인 row 추출 
+```
+
+## 7. Data frame 정렬하기
+```{r}
+# order 함수를 활용해 순서를 구하여, row 조건에 넣어서 정렬
+# decreasing=T 인수를 활용하여 오름차순, 내림차순변경 가능
+order(customer$cust_age) #order 함수로 age에 대한 순서를 구함
+customer[order(customer$cust_age),] # row의 조건에 위에서 구한 순서를 넣음 
+order(customer$cust_age, decreasing=F) #오름차순
+customer[order(customer$cust_age, decreasing=F),]
+```
+
+## 8.Data frame 기타 함수
+```{r}
+# head, tail 함수는 데이터프레임이 상위, 하위 row를 출력함 
+# 기본 6개를 출력하며, row 수를 지정할수 있음
+head(customer) #상위 6개 row
+head(customer, 2) #상위 2개 row
+tail(customer, 2) #하위 2개 row
+```
+
+
+# 파일 입출력 
+## 1. 내장데이터 불러오기
+```{r}
+# MASS 패키지에는 다양한 데이터가 들어있음
+
+#install.package("MASS")
+library(MASS)
+# iris 데이터셋
+# 붓꽃의 종과 Sepal과 Petal의 너비와 길이에 대한 데이터 
+head(iris)
+
+str(iris)
+
+# mtcars 데이터셋
+# 자동차 차종별 상세스펙에 대한 데이터
+head(mtcars)
+str(mtcars)
+
+# USArrests 데이터셋
+# 1973년도 50개 주에서 수집된 범죄기록 데이터 
+head(USArrests)
+str(USArrests)
+```
+
+## 2. file로 저장된 데이터 불러오기
+```{r}
+# 블랙보드에서 실습과제에 첨부되어있는 파일을 다운받아 사용할 것 
+# setwd 함수로 해당 작업폴더 지정해주기
+# sedwd("c:/PR") # 지정하지 않으면 내문서가 기본 작업폴더
+
+# read.csv()함수
+# header = T (첫행 컬럼명으로 사용)
+# row.names = 1 (첫열 로우명으로 사용)
+# sep = "," (입력된 데이터 구분해주는 기호)
+# na.strings = c("Na", "nan") (NA 값으로 처리할 문자열 정의)
+# fileEncoding = "UTF-8" (문자열을 특정 형식으로 재 인코딩)
+# encoding = "UTF-8" (불러들일 file의 인코딩을 미리 선언)
+# stringsAsFactors = F
+
+# 그냥 읽어오기
+csv <- read.csv("read_csv.csv") ; csv
+str(csv)
+getwd()
+
+# header, stringsAsFactors 사용
+# 불러온 데이터가 어떻게 바뀌는지 확인해보세요
+csv2 = read.csv("read_csv.csv", header=F, stringsAsFactors=F) ; csv2
+str(csv2)
+# 결측값 처리하기
+# (".","N.A.","") 3가지 문자를 모두 NA로 인식하도록 함
+csv3 = read.csv("csv_NA.csv", header=F, stringsAsFactors=F, na.strings=c(".","N.A.","")) ; csv3
+str(csv3)
+
+# 인코딩 문제해결하기
+# 불러올 파일의 인코딩을 UTF-8로 지정
+csv4 = read.csv("csv_NA.csv", header=F, stringsAsFactors=F, encoding="UTF-8") ; csv4
+str(csv4)
+
+# read.table()함수
+# table 형태로 저장된 2차원의 데이터를 불러옴
+# txt 파일이니 csv 파일을 불러올수 있음 
+# 불러온 데이터는 데이터프레임으로 생성
+# read.csv()함수와 동일하게 인수를 사용
+table = read.table("read_csv.csv", header=F, sep=",", stringsAsFactors=F)
+table
+```
+
+## 3. 웹에서 데이터 읽어보기
+```{r}
+# 웹에 있는 데이터를 바로 읽어볼수도 있음
+#store.df <- read.csv("http://goo.gl/QPDdM1")
+#head(store.df,2)
+
+# 웹에 있는 표를 읽어 오기 readHTMLTable()
+# install.packages("XML")
+library(XML)
+world_pop = readHTMLTable("http://www.worldometers.info/world-population/")
+
+head(world_pop[[1]])
+```
+
+## 4. 데이터 저장하기
+```{r}
+# write.table 또는 write.csv 함수 사용
+# row.names=F 는, 해당 인수를 T로 줄 경우 행 이름이 첫 열로 이동하여 저장되기 때문
+table
+
+write.table(table,"PR_table.csv")
+write.table(table,"PR_table1.csv", row.names=F)
+write.csv(table,"PR_table2.csv",row.names=F)
+```
+
+# 연습문제
+- 제공된 데이터는 PUBG에서 서비스하고있는 Battle Ground 게임 내 데이터들 중 일부다.
+- Battle Ground는 100명의 플레이어들이 한 섬에 떨어지고 싸우게 한 후 최후의 생존자 1인을 가리는 게임이다.
+- 각 열의 데이터들의 의미입니다.
+  - 1열: 플레이어ID
+  - 2열: 플레이한 게임 횟수
+  - 3열: 평균 데미지를 넣은 양(데미지: 적에게 피해를 입힌 정도)
+  - 4열: 평균 적을 죽인 횟수
+  - 5열: 평균 생존시간
+  - 6열: 평균 움직인 거리
+  - 7열: 플레이한 지역
+
+# 문제1
+- PUBG_Player_Statistics.csv의 데이터를 pubg란 변수에 데이터 프레임 형태로 저장하세요.
+- 문제 1.1 str함수를 사용해 저장된 변수의 구조를 출력해보고 저장된 형식의 문제점을 파악해 보세요.
+- 문제 1.2 왜 그런 문제가 생겼을지 유추해보세요.
+- 문제 1.3 문제점을 나름대로 해결해보고 해결과정을 서술하세요.
+- 제공된 원본데이터의 수정이 필요한 경우 PUBG_Player_Statistics_fix.csv로 저장하시고 수정된 csv파일을 같이 제출해주세요. 원본데이터의 수정이 필요없는 경우는 수정된 파일을 만들지 않으셔도 상관없습니다.
+```{r}
+# 문제1.1
+getwd()
+pubg <- read.csv("PUBG_Player_Statistics(1).csv") #데이터를 pubg란 변수에 데이터 프레임 형태로 저장 
+str(pubg)
+# 문제1.1-문제점 파악: solo_AvgSurvivalTime 값이 Factor로 나온다. solo_MoveDistance 값이 Factor로 나온다.
+# 문제1.2-왜 그런 문제가 생겼는지 유추: 정돈을 시키지 않아서 파일의 값과 다르게 나옴. 엑셀에서 solo_AvgSurvivalTime와 solo_MoveDistance 셀의 속성이 통화로 되어있었다.
+# 문제1.3-문제점을 나름대로 해결해보고 해결과정 서술
+pubg <- read.csv("PUBG_Player_Statistics_fix.csv",stringsAsFactors = F)# stringsAsFactors인수로 문자열을 문자열로 저장해준다. 액셀에서 solo_AvgSurvivalTime와 solo_MoveDistance 셀의 속성을 숫자로 바꾸어준다. 
+str(pubg)
+```
+
+# 문제2
+- 문제1을 통해 파일을 수정했다면, 수정한 파일에 문제 2,3번을 풀어주시고, 수정하지 않았다면 원본파일에 풀어주세요.
+- country란 변수를 새롭게 만들어 각 플레이어의 소속 국가를 입력하세요.
+- 각 play region별 소속국가는 다음과 같습니다.
+- 1: KOREA
+- 2: CHINA
+- 3: JAPAN
+- 4: USA
+- 5: OTHERS
+- 필수사항: 팀명을 이용해 서브세팅한 후 국가를 입력할 것
+```{r}
+pubg <- read.csv("PUBG_Player_Statistics_fix.csv",stringsAsFactors = F, header=T) ; head(pubg)
+country <- c("KOREA","CHINA","JAPAN","USA","OTHERS") ; country # country란 변수에 각 플레이어의 소속국가를 입력 
+K <- subset(pubg,pubg$play_region==1) # play_region이 1인 row를 "KOREA"로 함.
+K$country <- c("KOREA")
+C <- subset(pubg,pubg$play_region==2) # play_region이 2인 row를 "CHINA로 함.
+C$country <- c("CHINA")
+J <- subset(pubg,pubg$play_region==3) # play_region이 3인 row를 "JAPAN"로 함.
+J$country <- c("JAPAN") 
+U <- subset(pubg,pubg$play_region==4) # play_region이 4인 row를 "USA"로 함.
+U$country <- c("USA")
+O <- subset(pubg,pubg$play_region==5) # play_region이 5인 row를 "OTHERS"로 함.
+O$country <- c("OTHERS")
+```
+
+# 문제3
+- 문제 3.1 국가별 평균 킬수와 데미지를 구하세요.
+- 킬수에 0.4, 데미지에 0.6의 가중치를 주어 ranking이란 변수에 할당한 후, ranking이 높은순서대로 출력해주세요.
+```{r}
+K1 <- mean(K$solo_AvgKills) ;K1 # "KOREA"의 평균 킬수
+C1 <- mean(C$solo_AvgKills) ;C1 # "CHINA"의 평균 킬수
+J1 <- mean(J$solo_AvgKills) ;J1 # "JAPAN"의 평균 킬수
+U1 <- mean(U$solo_AvgKills) ;U1 # "USA"의 평균 킬수 
+O1 <- mean(O$solo_AvgKills) ;O1 # "OTHERS"의 평균 킬수
+K2 <- mean(K$solo_AvgDamage) ;K2 # "KOREA"의 평균 데미지
+C2 <- mean(C$solo_AvgDamage) ;C2 # "CHINA"의 평균 데미지
+J2 <- mean(J$solo_AvgDamage) ;J2 # "JAPAN"의 평균 데미지
+U2 <- mean(U$solo_AvgDamage) ;U2 # "USA"의 평균 데미지
+O2 <- mean(O$solo_AvgDamage) ;O2 # "OTHERS"의 평균 데미지
+korea_price <- (K1*0.4)+(K2*0.6) ; korea_price #KOREA의 킬수에 0.4, 데미지에 0.6 가중치를 줌.
+china_price <- (C1*0.4)+(C2*0.6) ; china_price #CHINA의 킬수에 0.4, 데미지에 0.6 가중치를 줌.
+japan_price <- (J1*0.4)+(J2*0.6) ; japan_price #JAPAN의 킬수에 0.4, 데미지에 0.6 가중치를 줌.
+usa_price <- (U1*0.4)+(U2*0.6) ; usa_price #USA의 킬수에 0.4, 데미지에 0.6 가중치를 줌.
+others_prcie <- (01*0.4)+(02*0.6) ; others_prcie #OTHERS의 킬수에 0.4, 데미지에 0.6 가중치를 줌.
+ranking <- c(korea_price,china_price,japan_price,usa_price,others_prcie) #ranking이란 변수에 할당 
+sort(ranking, decreasing=T) # ranking이 높은순서대로 출력 
+order(ranking, decreasing=T) # 국가별 높은순서대로 나열 
+```

@@ -1,0 +1,290 @@
+---
+title: "PR10"
+author: "201821510_이유빈"
+date: "2018년11월24일"
+output: word_document
+always_allow_html: yes
+---
+
+# 1. ggplot2 기초
+## 1-1. ggplot2 plot의 기본 성분
+- 성분 / 설명
+    + Data / 주로 dataframe 형태의 데이터
+    + Aesthetic Mappings / 데이터를 축, 색상 및 점의 크기 등으로 매핑하는 방법
+    + Geometric object / 점,선,도형과 같은 기하학적 객체
+    + Facetting / 조건부 플롯을 위해 패널을 분할하여 표현하는 방법
+    + Statistical transformation / 구간화, 분위수, 평활 등의 통계 변환
+    + Scales / 데이터의 스케일을 동적으로 조정하여 어떤 시각적 요소를 사용할 것인가 정의(e.g. 남성=파랑, 여성=빨강 등으로 지정)
+    + Coordinate system / 좌표계
+    + Position adjustment / 위치의 조정
+
+## 1-2. ggplot2 기본 사용법
+- mtcars를 활용 : wt(중량), mpg(연비), cyl(실린더의 개수)
+```{r}
+library(ggplot2)
+head(mtcars)
+p <- ggplot(data=mtcars, aes(x=wt, y=mpg, colour=cyl)) ; p
+```
+
+- geom_point()함수를 추가하여 산점도 표현
+```{r}
+p <- p + geom_point() ; p
+```
+
+- ggplot 객체의 구조
+    + summary를 보면 대략적인 그래프를 짐작할 수 있음
+    + mapping을 보면 x,y축의 데이터와 색상을 결정짓는 변수를 확인 가능함
+    + faceting은 조건부 출력을 의미함. Facet_null()은 faceting이 없다는 말
+    + geom_point는 산점도 그래프라는 의미
+    + stat_identity는 통계변환이 identity, 즉, 변환이 없는 상태의 데이터라는 것을 의미
+    + position_identity도 데이터 위치가 어떠한 조정도 없었다는 것을 의미
+    + na.rm=False는 결측값 제거를 하지 않았다는 것을 의미함
+```{r}
+class(p)
+attributes(p)
+summary(p)
+```
+
+## 1-3. ggplot2로 barplot 그리기
+- 실런더 수에 대한 barplot을 그림
+- 막대는 기어의 개수에 따라 서로 다른 facet에 출력
+- facet이란 독립된 subplot이 그려지는 패널 구조를 의미
+- 결과 값을 보면 3개의 subplot이 있는 것을 확인 할 수 있음
+- 산점도 색상옵션으로 colour인수사용, barplot은 색상옵션으로 fill인수사용
+```{r}
+b <- ggplot(data=mtcars, aes(x=factor(cyl), fill=factor(cyl)))
+b <- b + geom_bar(width= .5) #bar의 넓이를 정의
+b <- b + facet_grid(.~gear) #기어 개수에 따른 facet 분할
+b
+```
+
+## 1-4. ggplot Layer
+- ggplot을 Layer 구조로 정리
+- ggplot=layers + scales + coordinate system
+- layers = data + mapping +geom + stat + position
+- layers가 실제 그리는 그림
+- data, mapping, geom 등등으로 하나씩 중첩해 가면서 plot을 그림
+- geom의 요소 또한 중첩 가능
+```{r}
+p <- ggplot(mtcars, aes(wt, mpg))
+p <- p + geom_point() ; p
+p <- p+geom_smooth(method = "loess") #라인 그래프 smooth 그리기
+p
+summary(p)
+```
+
+## 1-5. ggplot 함수 분류
+- 함수 / 설명
+    + plot creation / ggplot 객체를 생성하는 함수군
+    + geoms / 그래픽의 지오메트릭(기하학적인 형태)을 지정하고 추가하는 함수군
+    + statistics / 데이터를 통계적인 관점으로 변환하는 함수군
+    + scales / 축의 스케일 변환과 라벨, 범례 등을 변경하는 함수군
+    + coordinate systems / 좌표계를 설정하는 함수군
+    + faceting / 그래픽 facet 레이아웃을 정의하는 함수군
+    + position adjustments / 지오메트릭의 위치를 지정하는 함수군
+    + anotation / 주석을 표기하는 함수군
+    + fortify / 타 클래스 객체를 데이터 프레임 객체로 변환하는 함수군
+    + themes / 스타일이나 테마를 설정하는 함수군
+    + aesthetics / 데이터를 축, 라벨, 색상 등 기하 구조상 시각적 속성을 매핑하는 함수군
+    + others / 기타 함수군
+
+## ggplot 레이어와 함수간 매핑
+- 레이어 / 함수
+    + data / plot creation 함수군
+    + mapping / plot creation 함수군, aesthetics 함수군
+    + geom / geoms 함수군
+    + stat / statistics 함수군
+    + position / position adjustments 함수군
+
+# 2. ggplot2 함수군
+## 2-1. Plot creating 함수군
+- 기초 플롯인 ggplot 클래스 객체를 생성
+- 가장 많이 사용하는 함수는 ggplot()과 qplot()
+- ggplot() 함수는 dataframe 객체로 플롯을 그릴 때 사용
+- qplot() 함수는 각 변수가 독립적인 객체로 존재할 때 사용
+```{r}
+qplot(mtcars$wt, mtcars$mpg)
+ggplot(mtcars, aes(wt, mpg)) + geom_point()
+```
+
+- qplot() 함수는 geom을 지정하지 않을 경우 point로 적용됨
+- ggplot은 모든 그래픽 인수들을 구체적으로 지정해야 함
+```{r}
+qplot(mtcars$wt, mtcars$mpg, geom="point")
+qplot(wt, mpg, data=mtcars, geom="point") #그래프는 위와 동일함
+```
+
+## 2-2. Geoms 함수군
+- geometric 요소를 지정하기 위한 함수군
+- 선, 점, 막대, 박스, 파이 등을 생각하면 됨
+- 함수 / 설명 / 비고
+    + geom_point() / 산점도 
+    + geom_abline() / 추세선 / 기울기와 절편을 꼭 적어줘야 함
+    + geom_bar() / 막대그래프 / 이산형 변수화 해야 함
+    + geom_ribbon() / 영역을 채우는 plot / geom_area()은 geom_ribbon의 한 형태
+    + geom_boxplot() / 박스플롯
+    + geom_histogram() / 히스토그램
+    + geom_density() / 1차원 데이터에 대한 밀도를 표현하기 위한 함수 / geom_area() + stat_density()와 동일
+    + geom_density2d() / 2차원 데이터에 대한 밀도를 표현하는 함수 / geom_area() + stat_density2d()와 동일. 하지만 복잡한 표현을 하려면 stat_density2d()를 직접 사용해야 함
+    + geom_contour() / 등고선을 그리는 용도
+    + geom_text() / plot에 text를 표현하기 위한 함수
+    + geom_map() / 지도를 표현하는 함수
+
+## 2-2-1. geom_point()
+```{r}
+p <- ggplot(data=mtcars, aes(x=wt, y=mpg))
+p + geom_point(colour="orange", size=6)
+p + geom_point(aes(colour=cyl, size=gear))
+```
+
+## 2-2-2. geom_bar()
+```{r}
+p <- ggplot(mtcars, aes(factor(cyl)))
+p + geom_bar()
+```
+
+- geom_bar를 aes함수로 꾸미기
+```{r}
+p <- ggplot(mtcars, aes(factor(cyl)))
+p + geom_bar(aes(fill=cyl, colour="black"))
+p <- ggplot(mtcars, aes(factor(cyl)))
+p + geom_bar(aes(fill=factor(gear)))
+```
+
+## 2-2-3. boxplot
+```{r}
+p <- ggplot(mtcars, aes(factor(cyl), mpg)) #기본 박스플랏
+p <- p + geom_boxplot()
+p
+```
+
+- box-plot를 aes함수로 꾸미기
+```{r}
+p + geom_boxplot(aes(fill=factor(carb))) #박스 내부를 carb팩터로 구분하여 표현
+p + facet_grid(~am) #am을 기준으로 facet 분리
+```
+
+## 2-2-4. Histogram
+```{r}
+#install.packages("ggplot2movies")
+library(ggplot2movies)
+p <- ggplot(movies, aes(rating))
+p <- p + geom_histogram()
+p
+
+#binwidth: histogram의 막대의 넓이 조절
+p <- p + geom_histogram(binwidth = 1)
+p
+```
+
+- Histogram에 확률밀도곡선 표현
+```{r}
+head(movies)
+p <- ggplot(movies, aes(rating))
+p <- p + geom_histogram(aes(y=..density..,fill=..count..)) ; p #히스토그램 그리기
+p <- p + geom_density(colour="red") ; p #확률밀도곡선 그리기
+p <- p + scale_fill_gradient(low="white", high="#496115") ; p #그라데이션 추가
+```
+
+## 2-2-5. 확률밀도곡선
+```{r}
+p <- ggplot(movies, aes(rating))
+p <- p + geom_density()
+p
+```
+
+- 여러개의 확률밀도곡선 그리기
+- aes(fill=factor(mpaa))인수로 mpaa를 분류한 rating의 확률밀도곡선 그리기
+```{r}
+p <- ggplot(movies, aes(rating))
+p <- p + geom_density(aes(fill=factor(mpaa), alpha=0.2))
+p
+```
+
+# 3. leaflet
+- leaflet 패키지는 interactive한 그래프를 그릴 있는 패키지
+- 구글맵과 오픈스트리트 맵을 이용하여 공간데이터를 시각화 함
+```{r}
+#install.packages("leaflet")
+library(leaflet)
+library(dplyr)
+m = leaflet() %>% addTiles()
+m = m %>% setView(127.0462, 37.2830, zoom=15) #아주대 경도위 위도 설정
+m %>% addPopups(127.0462, 37.2830, "Here is Ajou University!")
+
+m
+```
+
+## 3-3. leaflet예제
+- addTiles()함수와 addAwesomeMarkers함수 사용
+- 서울시 교통 돌발상황 조회 서비스 데이터 중 일부를 사용하여 지도에 표시하기
+## 데이터로드 및 시각화
+```{r}
+setwd("C:/Users/leeyubin/Desktop")
+traffic <- read.csv("C:/Users/leeyubin/Desktop/traffic.csv", fileEncoding = "utf-8")
+range(traffic$start.pos.x) #돌발상황 시작점 경도
+range(traffic$start.pos.y) #돌발상황 시작점 위도
+traffic1 <- traffic[traffic$start.pos.x!=0 & traffic$start.pos.y!=0,] #na값 제거(0인값)
+leaflet(traffic1) %>% addTiles() %>%
+  addAwesomeMarkers(~start.pos.x, ~start.pos.y)
+```
+
+## 출처
+- 1. R을 활용한 데이터 시각화 - 유충현, 홍석학
+- 2. ggplot2 - 김성근
+- 3. R라뷰 - 서진수
+
+## 연습문제
+- 주어진 BGCON_CUST_DATA.csv 파일을 사용하여 다음을 해결하시오.
+- BGCON_CUST_DATA.csv는 2016년 빅콘테스트에서 제공된 보험사기여부 데이터를 수정 가공한 것입니다.
+- 각 열 이름의 의미는 다음과 같습니다.
+- ID: 고객을 구분하는 고유번호
+- SIU: Y의 경우 보험사기자, N의 경우 일반고객
+- GENDER: 성별 1은 남성, 성별2는 여성
+- AGE: 고객 연령
+- RESI_COST: 고객의 거주지 주택가격 추정값(단위:만원)
+- FP_CA: (당사 FP로서의) Y: 경력있음, N: 경력없음
+- RGST: 최초 당사의 고객으로서의 등록 년월
+- CTPR: 고객의 거주 시/도
+- WEDD: Y:결혼함, N:결혼안함(계약 당시에는 결혼하지 않았던 상태 포함)
+- CHLD: 고객의 자녀 수
+- DMND_AMT: 청구금액
+- PAYM_AMT: 지불금액
+
+## 문제1
+- 거주지 가격이 100000 이상인 고객에 한하여 다음을 생성하시오.
+```{r}
+library(ggplot2)
+bgcon <- read.csv("BGCON_CUST_DATA.csv")
+b <- ggplot(bgcon,aes(x=AGE, y=RESI_COST), colour=CHLD)+geom_point()+coord_cartesian(xlim= c(20,60),ylim = c(100000,250000));b
+```
+
+## 문제2
+- 보험 사기고객에 대하여 다음을 생성하시오(성별에 따라 구분할 것)
+```{r}
+ggplot(bgcon,aes(AGE))+geom_bar()+facet_grid(~GENDER)
+```
+
+## 문제3
+- 보험 사기고객중 지불금액이 4000000이상이고 14000000이하인 고객에 대하여 다음을 생성하시오.
+```{r}
+library(RColorBrewer)
+ggplot(bgcon,aes(AGE,PAYM_AMT,color=CTPR), fill=CTPR)+coord_cartesian(xlim=c(30,70), ylim=c(2500000,12500000))
+```
+
+## 문제4
+- 당사 FP로서의 경력이 있는 고객에 대하여 다음을 생성하시오.
+```{r}
+ggplot(bgcon,aes(x=factor(CTPR)),fill=SIU)+geom_bar()
+```
+
+## 문제5
+- 보험 사기고객이 아닌 고객에 대하여 다음을 생성하시오.
+```{r}
+ggplot(bgcon,aes(AGE))+geom_histogram(aes(y=..density..,fill=..count..))+geom_density(color="black")
+```
+
+## 문제6
+- 각 시도별 보험 사기고객 비율(per)을 구하여 다음을 생성하시오.
+- 각 시도별 위도와 경도는 "KOR_LAT_LON.csv"파일을 참고하시오.
+- 사용법은 구글링 또는 https://cran.r-project.org/web/packages/leaflet/leaflet.pdf 참조하시오.

@@ -1,0 +1,232 @@
+---
+title: "PR7"
+author: "Lee Yu Bin"
+date: "2018년 11월 1일"
+output: word_document
+---
+
+# apply함수
+- 복수의 데이터에 함수를 일괄 적용할때 사용함
+- apply, lapply, sapply, vapply, tapply, mapply등이 있음
+- 각 apply함수는 입력받는 데이터의 형태와 출력하는 데이터의 형태에 따라 다르게 적용함
+
+## 1)apply함수
+- 형식: apply(data.margin(1또는2),function)
+- margin 인수를 1또는 2로 사용하여 1은 행, 2는 열을 적용
+- 행이나 열의 합계, 평균 등을 일괄적으로 구할 수 있음
+```{r}
+head(mtcars,1)
+apply(mtcars[1:3,],1,FUN=mean) #1~3행의 평균
+apply(mtcars[,1:3],2,FUN=mean) #1~3열의 평균
+```
+
+## 2)lapply(list apply)
+- 형식: lapply(data.function)
+- 리스트형의 데이터를 받아 리스트로 결과를 반환
+- 데이터프레임의 각 열은 리스트로 구성되어 있음
+```{r}
+lapply(mtcars[,1:3],mean)
+```
+
+## 3)sapply(simple apply)
+- 형식: function(data.function, simplify=F)
+- 입력값 : 벡터, 리스트, 데이터프레임 가능
+- 출력값 : 벡터, 리스트, 매트릭스 형태로 결과를 반환
+- 인수 simplify=F이면 리스트로 결과 반환
+```{r}
+x = 1:5 ; y = 11:14
+z = list(x,y)
+sapply(x, function(x){x+1}) #벡터 입력, 벡터 출력 
+
+sapply(z,function(x){x+1}) #리스트 입력, 리스트 출력 
+
+sapply(mtcars[1:3,],function(x){x+1}) #데이터프레임 입력, 매트릭스 출력 
+
+sapply(mtcars[1:3,],function(x){x+1}, simplify = F) #데이터프레임 입력, 리스트 출력
+```
+
+## 4)tapply(table apply)
+- 그룹으로 묶은 후 함수를 적용, 적용 값을 벡터나 행렬로 반환
+```{r}
+patient <- read.table("sample_data.txt",header=TRUE)
+factor(patient$type)
+tapply(patient$type, patient$type, length) #type에 따른 그룹별 환자의 수
+tapply(patient$age, patient$type, mean) #type에 따른 그룹별 나이의 평균
+```
+
+## 5)mapply(multi simple apply)
+- 여러 개의 리스트에 함수를 적용
+```{r}
+m1 <- list(a=c(1:10), b=c(11:20))
+m2 <- list(c=c(21:30), d=c(31:40))
+mapply(sum,m1$a,m2$d) #2개의 리스트에 적용 
+mapply(sum, m1$a, m1$b, m2$c, m2$d) #4의 리스트에 적용
+```
+
+## 6)aggregating
+- 예제 데이터
+```{r}
+seg.df <- read.csv("http://goo.gl/qw303p")
+head(seg.df)
+```
+
+## 6.1)mean, sd 통계함수
+```{r}
+attach(seg.df)
+mean(income[Segment=="Moving up"]) #Moving up세그먼트 집단의 소득평균 
+mean(income[Segment=="Moving up" & subscribe == "subNo"]) #Moving up 세그먼트+서비스미사용자의 소득 평균
+```
+
+## 6.2)apply함수
+```{r}
+apply(seg.df[,c(1,3,4)], 2, mean) #나이, 수입, 자녀수 평균
+str(apply(seg.df[,c(1,3,4)],2,mean))
+apply(seg.df[Segment=="Moving up",c(1,3,4)],2, mean) #Moving up 세그먼트, 서비스미이용자의 소득평균
+```
+
+## 6.3)table함수
+```{r}
+table(kids) #자녀수 현황
+table(ownHome, subscribe) #이용자기준, 주거형태현황
+table(Segment, kids, subscribe) #세그먼트, 구독여부, 자녀수
+```
+
+## 6.4)by함수
+- 사용방식: by(목표변수,기준변수,함수)
+- by함수는 결과 값을 리스트로 반환한다.
+```{r}
+by(income, Segment, mean)
+by(income, list(Segment, subscribe), mean)
+```
+
+## 6.5)aggregate함수
+- 사용방식: aggregate(목표변수, 기준변수, 함수)
+- 결과값을 데이터프레임으로 출력해 주는 것이 가장 큰 장점임.
+- 기준변수가 list로 입력되어야 한다.
+```{r}
+aggregate(income, list(Segment), mean)
+str(aggregate(income, list(Segment), mean))
+aggregate(income~Segment, data=seg.df, mean)
+aggregate(income~Segment+ownHome+subscribe, data=seg.df, mean)
+```
+
+## 6.6)cut함수
+- cut함수는 연속형 변수를 특정 구간으로 구분하여 명목형 변수로 변환한다.
+- cut(데이터, breaks=구간수, labels=구간이름)
+```{r}
+cut.data = aggregate(income~Segment+ownHome+subscribe, data=seg.df, mean)
+cut.data$income2 = cut(cut.data$income, breaks = seq(0, 70000, 10000))
+cut.data$income2 = cut(cut.data$income, breaks = c(0, 20000, 30000, 40000, 50000, 60000, 70000), labels = c('2만 이하', '2만~3만', '3만~4만', '4만~5만', '5만~6만', '6만이상'))
+cut.data
+```
+
+## 6.7)grep함수
+```{r}
+grep("ap", c("apple", "Apple", "apple2", "bbapple")) #ap를 포함하는 원소들의 위치
+grep("ap", c("apple", "Apple", "apple2", "bbapple"), value = TRUE) #ap를 포함하는 원소 
+grep("[1-3]", c("apple1", "apple2", "apple3", "apple4", "Apple1")) #1,2,3을 포함하는 원소위치 
+grepl("ap", c("apple", "Apple", "apple2", "bbapple")) #ap를 포함하는 원소들의 위치
+```
+- 공통된 패턴을 가진 자료들의 위치를 찾아서 위치 값을 활용해 데이터를 일괄 변환할 때 사용한다
+```{r}
+seg.df$ownHome = as.character(seg.df$ownHome)
+grep('Yes', seg.df$ownHome)
+head(seg.df)
+seg.df$ownHome[grep('Yes', seg.df$ownHome)] = 'Yes'
+head(seg.df)
+```
+
+## 6.8)gsub함수
+- 현재데이터의 Segment컬럼에 한칸 띄어쓰기를 없애고 싶을 때, 다음과 같이 사용한다.
+```{r}
+seg.df$Segment = gsub(" ", "", seg.df$Segment)
+head(seg.df)
+```
+
+## 6.9)which(), which.max(), which.min()
+```{r}
+x <- c(2, 4, 6, 7, 10)
+x %% 2
+which(x %% 2 == 0)
+x[which(x %% 2 == 0)]
+x <- c(2,4,6,7,10)
+which.min(x)
+x[which.min(x)]
+which.max(x)
+x[which.max(x)]
+```
+
+# package
+- R에서 기본적으로 제공하는 함수 외에 다른 프로그래머들이 필요하다고 생각해서 만들어 놓은 함수들의 모음
+- 이것을 보통 library 또는 API라고 칭함
+- R에서는 보통 CPAN에서 R 재단이 인정한 패키지들을 공유
+- 비공식적이지만 개인이 만들어서 공유한느 패키지들이 있는데 보통 github에 업로드 되어 있음
+
+## 설치
+- 설치 명령어: install.packages()
+- 다음 시간 사용할 크롤링 관련 페키지 설치
+```{r}
+#install.packages("rvest")
+#install.packages("httr")
+#install.packages("Rselenium")
+```
+- 해당 명령어는 패키지가 설치되어 있어도 다시 설치하므로 한번 설치후에는 주석처리 
+
+## 불러오기
+- library(package 이름): 설치되어 있는 패키지를 불러옴
+- require(package 이름): 불러오려는 시도를 하고 logical한 return값을 반환
+```{r}
+x <- library(rvest)
+x
+x <- require(rvest)
+x
+```
+
+## 패키지 업데이트
+- 패키지 개발자가 자신이 만든 패키지의 기능을 보완하거나, R버전이 업데이트 되서 호환이 되게 수정하거나 오류사항을 수정
+- 명령어는 updata.packages(패키지 이름)
+- R studio를 쓰시는 경우에는 우측 하단에 package라는 탭이 보이는데, 해당 탭 바로 밑에 updata라는 항목이 보일겁니다.
+- 이걸 누르고 원하는 패키지 또는 전체 패키지를 선택하고 업데이트 눌러주시면 됩니다.
+```{r}
+#updata.packages("rvest")
+```
+
+## 비공식 패키지 설치
+```{r}
+#install.packages("devtools")
+library(devtools)
+#install_github("패키지")
+```
+
+## 불러온 패키지 사용중지
+```{r}
+#detach("package:gglot2", unload=T)
+```
+
+# 연습문제
+
+## 문제1
+- pr4문제 1에서 ","로 인해 숫자가 factor형으로 인식되는 문제가 발생했었다.
+- 이 문제를 sapply함수를 사용하여 해결하시오.
+- 힌트: gsub함수이용(특정문자열 치환)
+```{r}
+pubg <- read.csv("PUBG_Player_Statistics.csv") #데이터를 pubg란 변수에 데이터 프레임 형태로 저장 
+str(pubg)
+x <- list(pubg$player_name, pubg$solo_AvgSurvivalTime, pubg$solo_MoveDistance) #factor형으로 인식되는 것을 list로 묶음 
+sapply(x, function(x){gsub(",","",x)}, simplify = F) #gusb함수를 이용하여 ","를 없애주었다
+```
+
+## 문제2
+- pr6의 문제1 해결당시 원본데이터파일을 수정하거나 복잡한 절차를 걸쳐 해결하였을 것이다. 
+- 하지만 apply계열의 함수를 사용하여 간단히 해결되는 것을 위의 문제에서 확인할 수 있었다. 
+- 지금까지의 연습문제 중 apply계열의 함수를 사용하여 작업의 효율성을 높일 수 있다고 판단되는 과제를 선택하고 apply계열의 함수를 사용하여 해결해보세요.
+- 왜 그 과제가 apply함수를 적용하기 적합하다고 판단하였는지 서술하세요.
+```{r}
+# PR3의 문제 1-1 : 남/여성 전체 실업률 구하기
+man_employment=c(3.8,3.4,3.2,3.1,3.8,3.2,3.2,2.9,3.9,3.6,3.4,3.3,4.0,3.8,3.6,3.2,4.3,3.8,3.7,3.2,4.2,4.0,3.7,3.4)
+woman_employment=c(3.7,3.0,2.7,2.5,3.3,2.9,2.6,2.6,4.0,3.7,3.1,3.1,4.2,3.8,3.2,3.0,4.2,3.6,3.3,3.2,4.4,3.7,3.2,2.9)
+unemploymane_rate <- lapply(x,function(x){
+  (man_employment+woman_employment)/2})
+unemploymane_rate[[1]]
+# 전체 실업률을 구하는 것에서 lapply함수를 사용하면 결과를 리스트형식으로 출력한다. 그래서 전체 실업률인 unemployment_rate에서 년도별로 전체 실업률도 구할 수 있다. 따라서, lapply함수를 적용하기에 적합하다고 판단하였다.  
+```
