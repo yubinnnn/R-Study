@@ -1,0 +1,74 @@
+---
+title: "HW1-1"
+author: "이유빈"
+date: "2018년 10월 2일"
+output: word_document
+---
+
+- CCTV 파일
+```{r}
+cctv <- read.csv("http://bit.ly/2EeCXyR") #데이터파일을 구글드라이브에 업로드하고 웹에서 다운 받는 방식으로 데이터 입력
+str(cctv) 
+cctv <- read.csv("http://bit.ly/2EeCXyR", stringsAsFactors=F) #stringsAsFactors인수로 문자열을 문자열로 저장해준다.
+str(cctv)
+table(is.na(cctv)) #결측값 7949개 있음
+cctv2 <- cctv 
+cctv2 <- ifelse(is.na(cctv),0,cctv2) # 결측값을 0으로 처리
+table(is.na(cctv2)) #결측값이 없음 
+cctv[3,2] #서브세팅으로 "경기도 화성시 병점동 838(공) 찾기"
+cctv[3,"소재지도로명주소"] #서브세팅으로 "경기도 화성시 병점동 838(공) 찾기"
+
+#cctv가 가장많이 설치되는 목적은 무엇인가?
+crime_prevention <- subset(cctv,cctv$설치목적구분=="생활방범") #생활방범이 설치목적인 행 할당
+crime_prevention <- nrow(crime_prevention);crime_prevention #생활방범이 설치목적인 행의 개수 구하기
+vehicle_prevention <- subset(cctv,cctv$설치목적구분=="차량방범") #차량방범이 설치목적인 행 할당 
+vehicle_prevention <- nrow(vehicle_prevention);vehicle_prevention #차량방범이 설치목적인 행의 개수 구하기
+traffic_enforcement <- subset(cctv,cctv$설치목적구분=="교통단속") #교통단속이 설치목적인 행 할당 
+traffic_enforcement <- nrow(traffic_enforcement);traffic_enforcement #교통단속이 설치목적인 행의 개수 구하기
+disaster <- subset(cctv,cctv$설치목적구분=="재난재해") #재난재해가 설치목적인 행 할당 
+disaster <- nrow(disaster) ;disaster #재난재해가 설치목적인 행의 개수 구하기
+multipurpose <- subset(cctv,cctv$설치목적구분=="다목적") #다목적이 설치목적인 행 할당 
+multipurpose <- nrow(multipurpose);multipurpose #다목적이 설치목적인 행의 개수 구하기
+trash_curbbing <-  subset(cctv,cctv$설치목적구분=="쓰레기단속") #쓰레기단속이 설치목적인 행 할당 
+trash_curbbing <- nrow(trash_curbbing);trash_curbbing #쓰레기 단속이 설치목적인 행의 개수 구하기
+facility_management <- subset(cctv,cctv$설치목적구분=="시설물관리") #시설물관리가 설치목적인 행 할당 
+facility_management <- nrow(facility_management);facility_management #시설물관리가 설치목적인 행의 개수 구하기
+child_protection <- subset(cctv,cctv$설치목적구분=="어린이보호") #어린이보호가 설치목적인 행 할당 
+child_protection <- nrow(child_protection) ; child_protection #어린이보호가 설치목적인 행의 개수 구하기
+traffic_information_collection <- subset(cctv,cctv$설치목적구분=="교통정보수집") #교통정보수집이 설치목적인 행 할당 
+traffic_information_collection <- nrow(traffic_information_collection);traffic_information_collection #교통정보수집이 설치목적인 행의 개수 구하기
+others <- subset(cctv,cctv$설치목적구분=="기타") # 기타가 설치목적인 행 할당
+others <- nrow(others);others #기타가 설치목적인 행의 개수 구하기
+
+purpose_number <- c(crime_prevention,vehicle_prevention,traffic_enforcement,disaster,multipurpose,trash_curbbing,facility_management, child_protection,traffic_information_collection,others) #목적 별 행의 개수를 purpose_number 변수에 할당
+rank <- c(paste0(1:10,"위")) ; rank # 1위부터 10위까지 
+purpose <- c("생활방범","차량방범","교통단속","재난재해","다목적","쓰레기단속","시설물관리","어린이보호","교통정보수집","기타") #목적들을 purpose변수에 할당 
+score <- data.frame(rank,purpose,sort(purpose_number,decreasing = T)) ;View(score) #dataframe안에 새로운 변수를 만들었다. 
+```
+
+- hospital 파일
+```{r}
+hospital <- read.csv("http://bit.ly/2NxQIYZ") #데이터파일을 구글드라이브에 업로드하고 웹에서 다운 받는 방식으로 데이터 입력
+
+str(hospital)
+hospital <- read.csv("http://bit.ly/2NxQIYZ",stringsAsFactors = F) #stringsAsFactors인수로 문자열을 문자열로 저장해준다.
+str(hospital)
+table(is.na(hospital)) #결측값이 없어서 0으로 처리하지 않음
+hospital[5,2] #서브세팅으로 "종별가산" 찾기
+mean(hospital$가산비율) #가산비율의 평균 구하기
+median(hospital$가산비율) #가산비율의 분산 구하기
+var(hospital$가산비율) #가산비율의 표준편차 구하기
+
+dentist <- subset(hospital,hospital$진료분야=="치과") #진료분야가 치과인 것 
+dentist <- nrow(dentist) ;dentist #치과가 진료분야인 행의 개수 구하기
+pharmacy <- subset(hospital,hospital$진료분야=="약국") #진료분야가 약국인 것
+pharmacy <- nrow(pharmacy) ; pharmacy #약국이 진료분야인 행의 개수 구하기
+oriental_medicine <- subset(hospital,hospital$진료분야=="한방") #진료분야가 한방인 것
+oriental_medicine <- nrow(oriental_medicine) ;oriental_medicine #한방이 진료분야인 행의 개수 구하기
+medical_course <- subset(hospital,hospital$진료분야=="의과") #진료분야가 의과인 것
+medical_cource <- nrow(medical_course) ;medical_cource #의과가 진료분야인 행의 개수 구하기
+treatment_part_number <- c(medical_cource,oriental_medicine,dentist,pharmacy) #진료분야별 행의 개수를 treatment_part_number변수에 할당 
+ranking <- c(paste0(1:4,"위")) ; ranking #1위부터 4위까지 
+treatment_part <- c("의과","한방","치과","의과") #진료분야를 treatment_part변수에 할당 
+score <- data.frame(ranking,treatment_part,sort(treatment_part_number,decreasing = T)) ;View(score) #dataframe안에 새로운 변수 생성 
+```
