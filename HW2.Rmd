@@ -1,0 +1,80 @@
+---
+title: "HW2"
+author: "201821510_이유빈"
+date: "2018년 11월 20일"
+output: word_document
+always_allow_html: yes
+---
+
+# 1.문제
+-(문제1) 텍스트 마이닝을 통해 해결할 수 있는 문제를 스스로 선택하시오. 그리고 그런 문제를 선택한 이유를 상세히 서술하시오.
+```{r}
+#정부가 “담배와의 전쟁”을 선포한 지는 꽤 됩니다. 국민 건강이 나빠지는 것은 물론, 흡연으로 우리 사회가 감내해야 할 사회 경제적 비용이 너무 크다는 판단에서였습니다. 급기야 정부는 2015년 1월 담뱃값을 2,000원이나 대폭 인상하면서 흡연을 다잡기에 나섰습니다. 그런데 어찌된 영문일까요. 2016년 성인 남성(만 19세 이상)의 흡연율(40.7%)은 전년(39.4%) 대비 1.3% 소폭 반등했습니다. 성인 여성(6.4%)도 1.1% 높아졌습니다. 정부가 “국민 세금만 축냈다”는 비난이 나오는 배경입니다. 그나마 가격이 비싸진 탓에 주머니 사정이 여의치 않은 청소년들의 흡연율이 감소한 것은 다행이지만 여전히 청소년 10명 중 7명은 편의점 등에서 약간의 수고만 들이면 담배를 살 수 있다고 답했습니다. (담뱃값 누구를 위한 인상인가… 흡연율 다시 상승, 한국일보, 2018.03.03)
+#보건복지부는 지난해부터 시행된 흡연 경고 그림 부착과 금연구역 확대 등 비가격 정책이 효과를 발휘하면서 “담배연기 없는 대한민국”을 만들 수 있다고 자신한다. 따라서, 텍스트 마이닝을 통해 담뱃값 인상이 금연에 얼마나 효과를 발휘할지 분석해보고자 한다.
+```
+
+-(문제2) 분석에 필요한 기본 지식을 서술하시오. 선행적으로 분석할 작업이 있다면 수행하시오.
+```{r}
+# 다음은 보건복지부에서 제시하는 금연에 대한 정보를 요약한 것이다. 서율특별시와 인천광역시 계양구 보건소에서 제작한 금연선전물에 따르면, 금연정책을 시행하는 이유는 간접흡연으로 비흡연자 특히 건강약자들인 여성과 어린이들이 폐암등의 질병으로 조기사망하는 등 비흡연자들의 건강권 침해가 심각하기 때문이다. 2015년부터는 실내흡연도 건물을 금연구역으로 정하여 할 수 없고, 입주민의 과반수가 찬성하면 금연 아파트를 정할 수 있다. 세계 보건 기구에서는 담뱃값을 천천히 올려서 금연을 하도록 가이드라인을 정했으며, 2015년 현재 대한민국의 담뱃값은 4500원으로 올랐다. 대한민국 보건복지부는 금연 구역 설정과 담뱃값 올리기가 금연에 도움이 된다고 해석했다.
+#빅데이터 분석도구 R을 이용해 담뱃값 인상과 관련된 뉴스를 분석하여 워드클라우드로 나타내어 보았다. 담뱃값 인상 효과란 주제어로 제시된 기간 동안 보도된 뉴스를 분석한 결과, 인상, 담뱃값, 담배, 흡연율, 경고, 전자 등의 단어가 주로 등장하는 것을 알 수 있었다.
+
+library(rvest) #http주소에 데이터 내용을 가져오기 위하여 rvest 패키지 사용
+news_title = NULL
+news_content = NULL
+for(i in 1:200){
+  url_base <- c("https://search.daum.net/search?nil_suggest=btn&w=news&DA=PGD&cluster=y&q=담뱃값+인상+효과&p=") #웹페이지 주소를 url_base 변수에 저장
+  url <- paste(url_base,i,sep="")  #다음 뉴스 페이지를 1부터 200페이지까지 크롤링을 함
+  news = read_html(url) #저장된 url을 이용해 내용을 읽어 옴
+  
+  news_title0 = html_nodes(news,'a.f_link_b') #selector를 이용해 data 추출
+  news_title1 = html_text(news_title0) #text만 추출
+  news_title = append(news_title, news_title1) #news_title변수에 추가
+  
+  news_content0 = html_nodes(news, 'p.f_eb.desc') #selector를 이용해 data 추출
+  news_content1 = html_text(news_content0) #text만 추출
+  news_content = append(news_content, news_content1) #news_content변수에 추가
+}
+news_m = data.frame(news_title, news_content) #데이터를 컬럼 별로 묶어 dadta frame 생성
+write.csv(news_m,"news.csv", row.names=F) #csv 파일로 저장
+news = read.csv("news.csv",stringsAsFactors = F) #csv파일을 읽어들임.
+
+#install.packages("KoNLP") #한글 자연어 처리를 위한 KoNLP 패키지 사용
+library(KoNLP) 
+news2 <- sapply(news, extractNoun, USE.NAMES=F) #명사만 추출
+undata <- unlist(news2) #처리를 위해 list를 풀어냄
+undata <- Filter(function(x){nchar(x)>=2},undata) #두글자 이상만 필터링
+wdata <- data.frame(undata) #data frame으로 결과를 변환
+wc <- table(wdata) #table()을 이용해 각 단어와 출현횟수 생성
+
+#install.packages("RColorBrewer")
+#install.packages("wordcloud")
+library(wordcloud)
+library(RColorBrewer)
+wordcloud(names(wc), freq=wc, scale=c(5,0.5),min.freq=10, max.words=30, random.order=F, random.color = T, color=brewer.pal(10,"Paired")) #wordcloud 그리기
+```
+
+-(문제3) 분석을 수행하고 자신의 의견을 서술하시오.
+```{r}
+#다음은 2015년부터 2018년까지 담배 판매량 변화이다. 주목하고 싶은 사실은 2014년의 판매량과 2015년의 판매량이다. 2014년에는 담뱃값이 2500원으로 판매량이 20억갑 이상이었다. 그러나, 담뱃값이 4500원으로 인상된 2015년에는 판매량이 15억 이하로 떨어졌다는 것 알 수 있다. 따라서, 담뱃값 인상이 흡연자들의 금연에 효과를 발휘했다고 할 수 있다. 또한, 보건복지부는 성인 남성의 흡연 여부를 분석한 결과 담뱃값 인상이 흡연율 저하에 실제 큰 영향을 미쳤다고 밝히기도 하였습니다. 보건복지부는 담배값 인상으로 성인 남성 흡연율이 35% 수준까지 하락할 것이라고 기대하고 있습니다. 아래의 그림은 ggplot2 패키지를 활용하여 추출한 담배 판매량 변화이다.
+
+#install.packages("ggplot2") #데이터를 시각화하는 패키지인 ggplot2 설치
+library(ggplot2)
+cigarette <- read.csv("담배 판매량.csv") #담배 판매량 데이터를 읽어 옴
+ggplot(cigarette, aes(x=year, y=sale))+geom_bar(stat="identity") #cigarette데이터의 year와 sale 변수를 그래프에 매핑함.
+```
+
+-(문제4) 문제3에서 제시한 의견의 근거를 서술하시오.
+```{r}
+#2018년 11월 11일 보건복지부와 질병관리본부에 따르면 19세 이상 성인 남자 흡연율이 담뱃값이 인상되었던 2015년 보다 1.3% 더 낮아졌다는 기사가 발표되었다.
+#url:"http://www.newsis.com/view/?id=NISX20181111_0000469592&cID=10818&pID=10800"
+
+#문형표 보건복지부 장관은 경제관계장관회의에 "담뱃값을 평균 2000원 인상한다"고 밝히며 "늘어난 건강증진지원금은 금연 지원 사업에 사용하겠다"고 전했습니다. 또한, 정보는 2000원 담뱃값 인상과 함께 편의점 등 소매점의 담배 광고를 전면 금지하고 담배 포장지에 혐오그림을 표기하는 것을 의무화하기로 결정했습니다. 이러한 정책들이 밝혀지므로 인해, 담뱃값 인상 전 사재기를 하는 사람들이 늘어났습니다. 이것을 대처하기 위해 정부는 담뱃값 인상을 앞두고 사재기 적발시 2년 이상의 징역 또는 5000만원 이하의 벌금형에 처한다고 밝혔습니다.
+#url : "http://news.donga.com/3/03/20140911/66326283/3"
+```
+
+-(문제5) 문제 해결과정에서 겪었던 어려움을 서술하시오.
+```{r}
+#문제2번에서 wordcloud2 패키지를 사용하였으나 wordcloud2 패키지는 word로 knit가 되지 않았다. wordcloud2 패키지는 output 형식을 html로 지정 해줘야 knit가 된다는 것을 알게 되었다. word 형식으로 제출하기 위하여 wordcloud2 패키지 대신 wordcloud 패키지를 사용하였다.
+
+#데이터 전처리를 하는 과정에서 gsub함수를 이용하여 필요없는 데이터를 삭제하려고 하였지면, gsub함수를 사용하여 데이터 삭제를 하고나면 table을 하여 단어의 출현횟수를 확인해보면 단어는 나오지 않고 횟수만 나오는 오류가 발생하였다. 그래서 gsub함수를 이용하여 데이터 전처리 과정을 하지 않고 extractNoun함수를 이용하여 데이터를 명사단위로 나누어 주었다.
+```
