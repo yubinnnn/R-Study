@@ -1,0 +1,267 @@
+---
+title: "HW1-2"
+author: "이유빈"
+date: "2018년 10월 16일"
+output: word_document
+---
+
+- 문제1
+```{r}
+# 파일을 읽어 들인 후, 데이터프레임의 행 이름을 각각 매칭되는 의원들의 이름으로 수정한 다음, 의원들의 이름이 담겨 있는 첫 번째 열을 제거한 데이터프레임을 출력
+getwd()  #파일이 저장되어 있는 위치 확인 
+setwd("C:/Users/leeyubin/Desktop") 
+poll <- read.csv("virtualData.csv") # 파일을 읽어 들임 
+str(poll)
+poll <- read.csv("virtualData.csv", header=F, stringsAsFactors = F, na.strings = "") # 첫행이 열 이름이 되지않도록 하기 위해 header함수를 썼고, Factor로 출력되는것을 문자로 바꿔주기 위해서 stringsAsFactors 함수를 썼다. 빈칸을 na로 받는 na.strings 함수를 사용.
+str(poll)
+rownames(poll) <- poll[,1] #행 이름을 1열로 함
+poll <- poll[,-1] #1열을 제거
+colnames(poll) <- c("party","item1","item2","item3","item4","item5","item6","item7","item8") # 열이름을 지정해줌 
+head(poll)
+```
+
+- 문제2
+```{r}
+# dataFrame의 각 의원 별 표결 정보에서 "찬성"은 1로 "반대"는 -1로 "기권"은 0으로 <NA>는 0으로 변경
+# 참고: 기존 데이터 프레임을 사용해 데이터를 변환하면 문제가 생길 수 있습니다. 새로운 데이터 프레임을 만들고 값을 새로 할당하는 방법을 사용해주세요.(물론 문제가 발생하지 않는다면 기존 데이터 프레임을 사용하셔도 상관없습니다.)
+poll1 = poll   #새로운 데이터 프라임 poll1을 만듦
+poll1[poll1=="찬성"] <- 1 #표결 정보에서 "찬성"을 1로 변경
+poll1[poll1=="반대"] <- -1 #표결 정보에서 "반대"를 -1로 변경
+poll1[poll1=="기권"] <- 0 #표결 정보에서 "기권"을 0으로 변경 
+
+for(i in 2:9)
+  poll1[,i] <- as.numeric(poll1[,i]) #데이터 프라임 poll1의 value의 속성을 숫자로 변경 
+
+poll1[is.na(poll1)] <- 0 #표결 정보에서 <NA>를 0으로 변경 
+head(poll1) #poll1 출력 
+```
+
+- 문제3
+```{r}
+# 설명: 각 의원 별 표결 정보를 내적해서 나온 결과를 저장한 데이터 프레임을 만드세요. 
+# 숫자가 클수록 의원간 투표가 비슷한 분포를 보여준다는 뜻
+# 숫자가 작을수록 의원간 투표가 다른 분표를 보여준다는 뜻 
+
+for(i in 2:9)
+  poll1[,i]<-as.numeric(poll1[,i]) #데이터 프라임 poll1의 value의 속성을 숫자로 변경
+str(poll1)
+
+poll2 <- poll1[,-1] #poll1에서 party열을 제거하여 poll2로 저장 
+
+poll3 <- matrix(0,nrow=10,ncol=10) #value가 없는 행렬을 만듦 
+poll3 <- data.frame(poll3) #행렬을 데이터 프레임으로 해줌 
+colnames(poll3) <- c("김우동","박수박","이족발","홍라면","박보쌈","김피자","장감바스","백된장","이초밥","송돈까스") #poll3의 열 이름 지정
+rownames(poll3) <- c("김우동","박수박","이족발","홍라면","박보쌈","김피자","장감바스","백된장","이초밥","송돈까스") #poll3의 행 이름 지정 
+
+a <- 1:10
+b <- 1:10
+c <- 1:8
+for(i in a){  #i가 1부터 10인 동안 
+  for(m in b)   #m이 1부터 10인 동안 
+    poll3[m,i] <- sum(poll2[m,c]*poll2[i,c])
+}  #벡터의 내적을 구하는 공식을 'sum(poll2[m,c]*poll2[i,c]'로 만듦 / # 만약에 m이 1이고 i가 2이면 poll3의 [1,2]칸에 poll2의 1행과 2행의 같은 열끼리 곱하여 더한 값을 넣음. / #i와 m이 10이 될때까지 해줌. 
+head(poll3)
+```
+
+- 문제4
+```{r}
+#(1) 표결 결과가 가장 크게 나타나는 경우는 <홍라면과 김우동>,과<이초밥과 김우동> 을 비교했을 때 이다.
+#(2) 표결 결과가 가장 작게 나타나는 경우는 <김우동과 이족발>,<김우동과 박보쌈>, <김우동과 백된장> 그리고 <이초밥과 이족발>을 비교했을 때 이다. 
+#(3) 내적 한 결과가 가장 크게 나타난 (1)은 두 의원 간의 표결이 비슷하다는 것을 의미한다.
+#(4) 내적 한 결과가 가장 작게 나타난 (2)은 두 의원 간의 표결에 차이가 있다는 것을 의미한다.
+```
+
+- 문제5
+```{r}
+# 문제2에서 데이터 프레임을 만든 방법을 이용해 정당 별 표결 평균 및 분산을 구해보세요. 평균과 분산은 8차원 벡터형태 이어야 합니다.
+for(i in 2:9){
+  poll1[,i]<-as.numeric(poll1[,i])  #데이터 프라임 poll1의 value 속성을 숫자로 변경
+}
+
+IW <- poll1[poll1$party=="일식우리당",] ;IW  #일식우리당인 행을 추출 
+GC <- poll1[poll1$party=="과일천하당",] ;GC  #과일천하당인 행을 추출 
+YH <- poll1[poll1$party=="야식한국당",] ;YH  #야식한국당인 행을 추출 
+HY <- poll1[poll1$party=="호화양식당",] ;HY  #호화양식당인 행을 추출 
+
+mIW <- NULL  #값이 없는 mIW 변수 생성 
+mGC <- NULL  #값이 없는 mGC 변수 생성 
+mYH <- NULL  #값이 없는 mYH 변수 생성 
+mHY <- NULL  #값이 없는 mHY 변수 생성 
+for(i in 2:9){
+  mIW <- append(mIW,mean(IW[,i])) #일식우리당의 평균을 8차원 벡터형으로 저장 
+  mGC <- append(mGC,mean(GC[,i])) #과일천하당의 평균을 8차원 벡터형으로 저장 
+  mYH <- append(mYH,mean(YH[,i])) #야식한국당의 평균을 8차원 벡터형으로 저장
+  mHY <- append(mHY,mean(HY[,i])) #호화양식당의 평균을 8차원 벡터형으로 저장
+}
+print(mIW)
+print(mGC)
+print(mYH)
+print(mHY)
+m <- rbind(mIW,mGC,mYH,mHY)  #mIW,mGC,mYH,mHY의 행을 결합 
+md <- data.frame(m) ;md #정당 별 평균을 8차원 벡터형으로 저장한 것을 데이터 프레임 형태로 저장  
+
+vIW <- NULL  #값이 없는 vIW 변수 생성
+vGC <- NULL  #값이 없는 VHY 변수 생성
+vYH <- NULL  #값이 없는 VHY 변수 생성
+vHY <- NULL  #값이 없는 VHY 변수 생성
+for(i in 2:9){
+  vIW <- append(vIW,var(IW[,i]))  #일식우리당의 분산을 8차원 벡터형으로 저장 
+  vGC <- append(vGC,var(GC[,i]))  #과일천하당의 분산을 8차원 벡터형으로 저장 
+  vYH <- append(vYH,var(YH[,i]))  #야식한국당의 분산을 8차원 벡터형으로 저장 
+  vHY <- append(vHY,var(HY[,i]))  #호화양식당의 분산을 8차원 벡터형으로 저장 
+}
+print(vIW)
+print(vGC)
+print(vYH)
+print(vHY)
+v<-rbind(vIW,vGC,vYH,vHY)  #vIW,vGC,vYH,vHY의 행을 결합 
+vd<-data.frame(v);vd  #정당 별 분산을 8차원 벡터형으로 저장한 것을 데이터 프레임
+```
+
+- 문제6, 문제7
+```{r}
+# '의안 정보 시스템'에서 원하는 표결 정보 10개를 받아 의원 간 표결 비교표를 만들고 분석해보세요. 또, 정당 별 평균 및 분산도 구해보세요. 문제 6을 해결하려면 문제 7을 활용해야 합니다.
+# 데이터 2개를 활용하여 다음 내용을 수행하세요.
+
+#'의안 정보 시스템'에서 표결 정보 10개의 표결정보를 받고 'read.csv'라는 함수를 이용해 파일을 읽어들임. / 'header=T'라고 하여 파일의 첫 행을 헤더로 처리했다 / 'stringsAsFactors=F'로 하여 문자열을 팩터가 아니라 문자열 타입으로 읽도록 했다. / 'na.strings=""'으로 하여 빈칸을 NA로 받아들이게 하였다.
+getwd()
+region <- read.csv("지역특화발전특구에 대한 규제특례법 전부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+shopping_area <- read.csv("상가건물 임대차보호법 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+internet <- read.csv("인터넷전문은행 설립 및 운영에 관한 특례법안.csv",header=T, stringsAsFactors = F, na.strings = "")
+industry <- read.csv("산업융합 촉진법 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+tax <- read.csv("조세특례제한법 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+information <- read.csv("정보통신 진흥 및 융합 활성화 등에 관한 특별법 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+korea <- read.csv("한국지방재정공제회법 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+business <- read.csv("기업구조조정 촉진법안.csv",header=T, stringsAsFactors = F, na.strings = "")
+unite <- read.csv("가맹사업거래의 공정화에 관한 법률 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+distribution <- read.csv("대규모유통업에서의 거래 공정화에 관한 법률 일부개정법률안.csv",header=T, stringsAsFactors = F, na.strings = "")
+
+
+baseData <- merge(region,shopping_area,c("의원명","소속정당"),all=T)  #"의원명"과 "소속정당" 열을 기준으로 하고 region과 shopping_area 데이터 프레임을 결합시킴. 이때, all=T 라고 하여 region과 shopping_area의 모든 값을 나타나게 함. 이것을 기본 데이터 프레임 baseData라고 해줌.
+b1 <- merge(baseData,internet,c("의원명","소속정당"),all=T)  #기본 데이터 프레임에 internet 데이터 프레임을 추가해줌.
+b2 <- merge(b1,industry,c("의원명","소속정당"),all=T)  #industry 데이터 프레임을 추가 
+b3 <- merge(b2,tax,c("의원명","소속정당"),all=T)  #tax 데이터 프레임을 추가 
+b4 <- merge(b3,information,c("의원명","소속정당"),all=T)  #information 데이터 프레임을 추가 
+b5 <- merge(b4,korea,c("의원명","소속정당"),all=T)  #korea 데이터 프레임을 추가 
+b6 <- merge(b5,business,c("의원명","소속정당"),all=T)  #business 데이터 프레임을 추가 
+b7 <- merge(b6,unite,c("의원명","소속정당"),all=T)  #unite 데이터 프레임을 추가 
+b8 <- merge(b7,distribution,c("의원명","소속정당"),all=T)  #distribution 데이터 프레임을 추가
+head(b8) #최종적인 데이터 프레임 출력 
+
+b8[b8=="찬성"]<- 1  #b8에서 "찬성"인 value를 1로 변경
+b8[b8=="반대"]<- -1  #b8에서 "반대"인 value를 -1로 변경
+b8[b8=="기권"]<- 0  #b8에서 "기권"인 value를 0으로 변경 
+
+for(i in 3:12){
+  b8[,i]<-as.numeric(b8[,i])  #데이터 프라임 b8의 value 속성을 숫자로 변경
+}
+
+b8[is.na(b8)] <- 0  #b8에서 <NA>값을 0으로 변경 
+
+head(b8)
+
+b8_two <- b8  #b8과 같은 데이터 프레임 b8_two를 만듦.
+b8_two <- b8_two[,-2] #b8_two에서 소속정당 열을 제거
+b8_three <- matrix(0,nrow=239,ncol=239)  #value가 없는 행렬을 만듦 
+b8_three <- data.frame(b8_three)  #행렬을 데이터 프레임으로 변환 
+rownames(b8_three) <- b8[,1]  #행 이름을 의원명으로 해줌 
+colnames(b8_three) <- b8[,1]  #열 이름을 의원명으로 해줌 
+
+d <- 1:239
+e <- 1:239
+f <- 2:11
+for(i in d)  #i가 1부터 239까지
+  for(m in e)  #m이 1부터 239까지 
+  b8_three[m,i] <- sum(b8_two[m,f]*b8_two[i,f])   #벡터의 내적을 구하는 공식을 'sum(b8_two[m,f]*b8_two[i,f]'로 만듦 / # 만약에 m이 1이고 i가 2이면 b8_three의 [1,2]칸에 b8_two의 1행과 2행의 같은 열끼리 곱하여 더한 값을 넣음. / #i와 m이 10이 될때까지 해줌.
+View(b8_three)
+
+head(b8_three,3) 
+
+# 의원 간 표결 비교표 분석하기
+#(1) 표결 결과가 가장 크게 나타나는 경우는 <강석진과 경대수>와 <강석진과 고용진> 을 비교했을 때 이다.
+#(2) 표결 결과가 가장 작게 나타나는 경우는 <김종대와 곽대훈>과 <권성동과 김종대 >를 비교했을 때 이다. 
+#(3) 내적 한 결과가 가장 크게 나타난 (1)은 두 의원 간의 표결이 비슷하다는 것을 의미한다.
+#(4) 내적 한 결과가 가장 작게 나타난 (2)은 두 의원 간의 표결에 차이가 있다는 것을 의미한다.
+
+# 정당 별 평균과 분산도를 구하시오.
+GK <- b8[b8$소속정당=="자유한국당",]   #자유한국당인 행 
+DM <- b8[b8$소속정당=="더불어민주당",]  #더불어민주당인 행 
+MP <- b8[b8$소속정당=="민주평화당",]   #민주평화당인 행 
+BM <- b8[b8$소속정당=="바른미래당",]   #바른미래당인 행 
+G <- b8[b8$소속정당=="정의당",]  #정의당인 행 
+M <- b8[b8$소속정당=="민중당",]  #민중당인 행 
+N <- b8[b8$소속정당=="무소속",]  #무소속인 행 
+
+mGK <- NULL  #값이 없는 mGK 변수 생성 
+mDM <- NULL  #값이 없는 mDM 변수 생성
+mMP <- NULL  #값이 없는 mMP 변수 생성
+mBM <- NULL  #값이 없는 mBM 변수 생성
+mG <- NULL  #값이 없는 mG 변수 생성
+mM <- NULL  #값이 없는 mM 변수 생성
+mN <- NULL  #값이 없는 mN 변수 생성
+
+for(i in 3:12){
+  mGK <- append(mGK, mean(GK[,i]))  #자유한국당의 평균을 8차원 벡터형으로 저장
+  mDM <- append(mDM, mean(DM[,i]))  #더불어민주당의 평균을 8차원 벡터형으로 저장
+  mMP <- append(mMP, mean(MP[,i]))  #민주평화당의 평균을 8차원 벡터형으로 저장
+  mBM <- append(mBM, mean(BM[,i]))  #바른미래당의 평균을 8차원 벡터형으로 저장
+  mG <- append(mG, mean(G[,i]))  #정의당의 평균을 8차원 벡터형으로 저장
+  mM <- append(mM, mean(M[,i]))  #민중당의 평균을 8차원 벡터형으로 저장
+  mN <- append(mN, mean(N[,i]))  #무소속의 평균을 8차원 벡터형으로 저장
+}
+print(mGK)
+print(mDM)
+print(mMP)
+print(mBM)
+print(mG)
+print(mM)
+print(mN)
+average <- rbind(mGK,mDM,mMP,mBM,mG,mM,mN)  #mGK,mDM,mMP,mBM,mG,mM,mN의 행을 결합 
+average_data <- data.frame(average) ; average_data  #정당 별 평균을 8차원 벡터형으로 저장한 것을 데이터 프레임
+
+vGK <- NULL
+vDM <- NULL
+vMP <- NULL
+vBM <- NULL
+vG <- NULL
+vM <- NULL
+vN <- NULL
+
+for(i in 3:12){
+  vGK <- append(vGK, var(GK[,i]))  #자유한국당의 분산을 8차원 벡터형으로 저장
+  vDM <- append(vDM, var(DM[,i]))  #더불어민주당의 분산을 8차원 벡터형으로 저장
+  vMP <- append(vMP, var(MP[,i]))  #민주평화당의 분산을 8차원 벡터형으로 저장
+  vBM <- append(vBM, var(BM[,i]))  #바른미래당의 분산을 8차원 벡터형으로 저장
+  vG <- append(vG, var(G[,i]))  #정의당의 분산을 8차원 벡터형으로 저장
+  vM <- append(vM, var(M[,i]))  #민중당의 분산을 8차원 벡터형으로 저장
+  vN <- append(vN, var(N[,i]))  #무소속의 분산을 8차원 벡터형으로 저장
+}
+print(vGK)
+print(vDM)
+print(vMP)
+print(vBM)
+print(vG)
+print(vM)
+print(vN)
+
+despersion <- rbind(vGK,vDM,vMP,vBM,vG,vM,vN)  #vGK,vDM,vMP,vBM,vG,vM,vN의 행을 결합 
+despersion_data <- data.frame(despersion) ; despersion_data  #정당 별 분산을 8차원 벡터형으로 저장한 것을 데이터 프레임
+```
+
+- 문제8
+```{r}
+# 문제6에서 선택한 10개의 표결 정보들을 선택한 이유를 서술하고 분석한 내용들을 토대로 나름대로의 분석결과를 도출하세요. 
+
+# (1) 문재인 대통령이 속해 있는 더불어민주당 의원들의 표결 결과가 얼마나 흩어져 있는지 알고 싶었다. 그래서 당과 상관 없이 10개의 표결 정보를 뽑았다. 
+# (2) 표결 정보가 얼마나 흩어져 있는지 알기 위해서는 분산을 구해야 한다.
+# (3) 위에서 당별 분산에 대한 데이터 프레임을 확인해보면 다음과 같다.
+despersion_data
+# (4) 각 당별 10개 대안의 분산을 평균을 내어 알아보기로 하였다.
+var_mean <- rowMeans(despersion_data)
+# (5) 각 당별 10개 대안의 분산을 평균한 결과를 순서대로 나열해보자.
+sort(var_mean,decreasing = T)
+# (6) 따라서, 더불어민주당은 4위로 다른 당의 비해서 비교적 분산이 작다는 것을 알 수 있다. 
+# (7) 결론 : 더불어민주당 의원들의 표는 흩어진 정도가 적어 의원들간의 표결 결과가 비슷하다는 것을 알 수 있다.
+```
+
+
